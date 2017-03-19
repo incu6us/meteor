@@ -57,10 +57,6 @@ func Run(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func taskHomeDir(taskName string) string {
-	return Workspace+string(filepath.Separator)+taskName
-}
-
 func executeTask(taskName string) string {
 	taskWorkspace := WORKSPACE + string(filepath.Separator) + taskName
 
@@ -85,7 +81,7 @@ func executeTask(taskName string) string {
 
 		// $WORKSPACE global var
 		if strings.Contains(cmdStr, "$WORKSPACE") {
-			cmdStr = strings.Replace(cmdStr, "$WORKSPACE", taskHomeDir(taskName), -1)+string(filepath.Separator)
+			cmdStr = strings.Replace(cmdStr, "$WORKSPACE", taskWorkspace, -1)+string(filepath.Separator)
 		}
 
 		cmd := exec.Command(conf.General.CmdInterpreter, conf.General.CmdFlag, cmdStr)
