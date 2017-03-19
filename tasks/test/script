@@ -3,7 +3,7 @@ echo "starting task"
 echo $WORKSPACE
 #echo $WORKSPACE
 
-export TEST="test string" && echo $TEST
+export TEST="test string" && echo $TEST 
 
 ls -l
 
