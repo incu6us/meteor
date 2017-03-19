@@ -110,7 +110,7 @@ func executeTask(taskName string) string {
 	}
 
 	if scriptFile, err = os.Open(
-		TASK_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "script",
+		TASK_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "pipeline",
 	); err != nil {
 		//msg <- fmt.Sprintf("Error to open script file: %v", err)
 		return fmt.Sprintf("Error to open script file: %v", err)
