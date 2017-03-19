@@ -1,7 +1,5 @@
 package: meteor
 import:
-- package: github.com/src-d/go-git
-  version: ^4.0.0-rc9
 - package: github.com/gorilla/mux
   version: ^1.3.0
 - package: github.com/naoina/toml

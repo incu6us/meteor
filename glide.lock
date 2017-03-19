@@ -1,16 +1,8 @@
-hash: 9c4a85c07157d2315cac046ce98e83f3b12becec6d09e10fa40317cb2e6d50cd
-updated: 2017-03-19T16:24:55.439087815+02:00
+hash: 74d5cfc601ee3b74ab1e52bf963f1da2379079bdb320441588766fd6bc69f95c
+updated: 2017-03-19T17:07:18.663019295+02:00
 imports:
-- name: github.com/gorilla/context
-  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
   version: 392c28fe23e1c45ddba891b0320b3b5df220beea
-- name: github.com/naoina/go-stringutil
-  version: 6b638e95a32d0c1131db0e7fe83775cbea4a0d0b
 - name: github.com/naoina/toml
   version: 751171607256bb66e64c9f0220c00662420c38e9
-  subpackages:
-  - ast
-- name: github.com/src-d/go-git
-  version: 4eef16a98d093057f1e4c560da4ed3bbba67cd76
 testImports: []
