@@ -12,16 +12,9 @@ import (
 	"meteor/internal/utils/config"
 )
 
-const (
-	//TASKS_DIR = "tasks"
-	//CMD_INTERPRETER = "/bin/bash"
-	//CMD_FLAG = "-c"
-)
-
 var conf = config.GetConfig()
 
 func main() {
-	//executeTask("test")
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/api/task/run/{taskName}", Run)
