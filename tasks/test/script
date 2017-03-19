@@ -1,5 +1,6 @@
 echo "starting task"
 
+echo $WORKSPACE
 sleep 1
 ls -l
 

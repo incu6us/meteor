@@ -11,6 +11,7 @@ import (
 	"github.com/incu6us/meteor/internal/utils/config"
 	"github.com/gorilla/mux"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -52,11 +53,12 @@ func Run(w http.ResponseWriter, r *http.Request) {
 
 	taskName := vars["taskName"]
 
-	//go func() {
-
 	w.Write([]byte(executeTask(taskName)))
-	//}()
 
+}
+
+func taskHomeDir(taskName string) string {
+	return Workspace+string(filepath.Separator)+taskName
 }
 
 func executeTask(taskName string) string {
@@ -81,6 +83,11 @@ func executeTask(taskName string) string {
 	executeCmd := func(cmdStr string) interface{} {
 		var cmdOut []byte
 
+		// $WORKSPACE global var
+		if strings.Contains(cmdStr, "$WORKSPACE") {
+			cmdStr = strings.Replace(cmdStr, "$WORKSPACE", taskHomeDir(taskName), -1)+string(filepath.Separator)
+		}
+
 		cmd := exec.Command(conf.General.CmdInterpreter, conf.General.CmdFlag, cmdStr)
 
 		if cmdOut, err = cmd.Output(); err != nil {
@@ -98,7 +105,7 @@ func executeTask(taskName string) string {
 	}
 
 	if scriptFile, err = os.Open(
-		TASK_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "script.sh",
+		TASK_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "script",
 	); err != nil {
 		//msg <- fmt.Sprintf("Error to open script file: %v", err)
 		return fmt.Sprintf("Error to open script file: %v", err)
