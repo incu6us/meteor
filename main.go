@@ -113,7 +113,7 @@ func executeTask(taskName string) string {
 	var buf bytes.Buffer
 	for scanner.Scan() {
 		str := scanner.Text()
-		if str != "" {
+		if str != "" && !strings.HasPrefix(str, "#") {
 			log.Printf("--- Running: %s\n", str)
 			//msg <- fmt.Sprintf("--- Running: %s\n", str)
 			buf.WriteString(fmt.Sprintf("--- Running: %s\n", str))
