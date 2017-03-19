@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"fmt"
 	"bytes"
-	"meteor/internal/utils/config"
+	"github.com/incu6us/meteor/internal/utils/config"
 )
 
 var conf = config.GetConfig()
