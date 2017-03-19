@@ -1,0 +1,17 @@
+# Systemd unit file for Meteor CD
+[Unit]
+Description=Meteor continuous delivery tool
+After=syslog.target network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/meteor
+ExecStart=/opt/meteor/meteor -conf /opt/meteor/meteor.conf
+ExecStop=pkill -f meteor
+Restart=on-failure
+
+User=pi
+Group=pi
+
+[Install]
+WantedBy=multi-user.target
