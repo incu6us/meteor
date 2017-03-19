@@ -1,8 +1,16 @@
-hash: 74d5cfc601ee3b74ab1e52bf963f1da2379079bdb320441588766fd6bc69f95c
-updated: 2017-03-19T17:07:18.663019295+02:00
+hash: 81a0d09f1da27f5f43f75b5d33fd95e862db68c461b7a2d31f2a7505ed0b79d0
+updated: 2017-03-19T23:33:10.607699106+02:00
 imports:
+- name: github.com/abbot/go-http-auth
+  version: efc9484eee77263a11f158ef4f30fcc30298a942
+- name: github.com/gorilla/context
+  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
   version: 392c28fe23e1c45ddba891b0320b3b5df220beea
+- name: github.com/naoina/go-stringutil
+  version: 6b638e95a32d0c1131db0e7fe83775cbea4a0d0b
 - name: github.com/naoina/toml
   version: 751171607256bb66e64c9f0220c00662420c38e9
+  subpackages:
+  - ast
 testImports: []

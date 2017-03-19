@@ -31,6 +31,7 @@ func main() {
 	log.Printf("ROOT PATH: %s", APP_PATH)
 
 	router := mux.NewRouter().StrictSlash(true)
+
 	router.HandleFunc("/api/task/run/{taskName}", Run)
 
 	log.Println("Start listening on 8080")
@@ -121,6 +122,7 @@ func executeTask(taskName string) string {
 
 	var buf bytes.Buffer
 	log.Printf("Running a script: %s", taskName)
+
 	for scanner.Scan() {
 		str := scanner.Text()
 		if str != "" && !strings.HasPrefix(str, "#") {
