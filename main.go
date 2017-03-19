@@ -87,9 +87,9 @@ func executeTask(taskName string) string {
 		cmd := exec.Command(conf.General.CmdInterpreter, conf.General.CmdFlag, cmdStr)
 
 		if cmdOut, err = cmd.CombinedOutput(); err != nil {
-			log.Printf("!!! Error to execute line: %v", err)
+			log.Printf("!!! Error to execute line: %v\n%s", err, cmdOut)
 			//msg <- fmt.Sprintf("!!! Error to execute line: %v", err)
-			return fmt.Sprintf("!!! Error to execute line: %v", err)
+			return fmt.Sprintf("!!! Error to execute line: %v\n%s", err, cmdOut)
 		}
 
 		log.Printf("--- Output: %s", cmdOut)
