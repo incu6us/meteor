@@ -5,11 +5,11 @@ import (
 	"bufio"
 	"os/exec"
 	"log"
-	"github.com/gorilla/mux"
 	"net/http"
 	"fmt"
 	"bytes"
 	"github.com/incu6us/meteor/internal/utils/config"
+	"github.com/gorilla/mux"
 )
 
 var conf = config.GetConfig()

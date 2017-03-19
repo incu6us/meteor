@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/naoina/toml"
 	"log"
+	"github.com/naoina/toml"
 )
 
 // TomlConfig - config structure
