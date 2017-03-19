@@ -16,7 +16,7 @@ import (
 
 const (
 	Workspace = "workspace"
-	TaskDir = "tasks"
+	TaskDir   = "tasks"
 )
 
 var (
@@ -60,6 +60,9 @@ func Run(w http.ResponseWriter, r *http.Request) {
 func executeTask(taskName string) string {
 	taskWorkspace := WORKSPACE + string(filepath.Separator) + taskName
 
+	var globalVars = make(map[string]string)
+	globalVars["$WORKSPACE"] = taskWorkspace
+
 	if exists(taskWorkspace) == true {
 		log.Printf("Task is already running. Workspace: %s - is busy. Wait a while", taskWorkspace)
 		return fmt.Sprintf("Task is already running. Workspace: %s - is busy. Wait a while", taskWorkspace)
@@ -79,12 +82,27 @@ func executeTask(taskName string) string {
 	executeCmd := func(cmdStr string) interface{} {
 		var cmdOut []byte
 
+		// combine all vars exports
+		//if strings.Contains(cmdStr, "export") {
+		//	keys := strings.Replace(cmdStr, "&&", ";", -1)
+		//	keys = strings.Replace(keys, "||", ";", -1)
+		//	//keys = strings.Replace(keys, "export ", "", -1)
+		//	for _, key := range strings.Split(keys, ";") {
+		//		if strings.Contains(key, "export") {
+		//			key = strings.Replace(key, "export", "", 1)
+		//			key = strings.TrimSpace(key)
+		//			globalVars["$"+strings.Split(key, "=")[0]] = strings.Split(key, "=")[1]
+		//		}
+		//	}
+		//}
+
 		// $WORKSPACE global var
 		if strings.Contains(cmdStr, "$WORKSPACE") {
-			cmdStr = strings.Replace(cmdStr, "$WORKSPACE", taskWorkspace, -1)+string(filepath.Separator)
+			cmdStr = strings.Replace(cmdStr, "$WORKSPACE", globalVars["$WORKSPACE"], -1)+string(filepath.Separator)
 		}
 
 		cmd := exec.Command(conf.General.CmdInterpreter, conf.General.CmdFlag, cmdStr)
+
 
 		if cmdOut, err = cmd.CombinedOutput(); err != nil {
 			log.Printf("!!! Error to execute line: %v\n%s", err, cmdOut)
@@ -111,6 +129,7 @@ func executeTask(taskName string) string {
 	scanner.Split(bufio.ScanLines)
 
 	var buf bytes.Buffer
+	log.Printf("Running a script: %s", taskName)
 	for scanner.Scan() {
 		str := scanner.Text()
 		if str != "" && !strings.HasPrefix(str, "#") {
@@ -125,6 +144,9 @@ func executeTask(taskName string) string {
 
 	cleanTaskWorkspace(taskWorkspace)
 
+	log.Println()
+	log.Println()
+	
 	return buf.String()
 }
 

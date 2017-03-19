@@ -2,9 +2,9 @@ echo "starting task"
 
 echo $WORKSPACE
 #echo $WORKSPACE
-sleep 1
-ls -l
 
-sleep 1
+export TEST="test string" && echo $TEST
+
+ls -l
 
 echo "finished"
