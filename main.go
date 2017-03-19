@@ -84,7 +84,6 @@ func executeTask(taskName string) string {
 		cmd := exec.Command(conf.General.CmdInterpreter, conf.General.CmdFlag, cmdStr)
 
 		if cmdOut, err = cmd.Output(); err != nil {
-			cleanTaskWorkspace(taskWorkspace)
 			log.Printf("!!! Error to execute line: %v", err)
 			//msg <- fmt.Sprintf("!!! Error to execute line: %v", err)
 			return fmt.Sprintf("!!! Error to execute line: %v", err)
@@ -101,7 +100,6 @@ func executeTask(taskName string) string {
 	if scriptFile, err = os.Open(
 		TASK_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "script.sh",
 	); err != nil {
-		cleanTaskWorkspace(taskWorkspace)
 		//msg <- fmt.Sprintf("Error to open script file: %v", err)
 		return fmt.Sprintf("Error to open script file: %v", err)
 	}
