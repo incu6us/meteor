@@ -168,12 +168,10 @@ func cleanTaskWorkspace(taskWorkspace string) {
 func exists(path string) (bool) {
 	_, err := os.Stat(path)
 	if err == nil {
-		log.Println("1", err)
 		return true
 	}
 
 	if os.IsNotExist(err) {
-		log.Println("2", err)
 		return false
 	}
 
