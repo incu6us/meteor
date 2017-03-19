@@ -9,13 +9,16 @@ import (
 	"net/http"
 	"fmt"
 	"bytes"
+	"meteor/internal/utils/config"
 )
 
 const (
-	TASKS_DIR = "tasks"
-	CMD_INTERPRETER = "/bin/bash"
-	CMD_FLAG = "-c"
+	//TASKS_DIR = "tasks"
+	//CMD_INTERPRETER = "/bin/bash"
+	//CMD_FLAG = "-c"
 )
+
+var conf = config.GetConfig()
 
 func main() {
 	//executeTask("test")
@@ -23,8 +26,8 @@ func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/api/task/run/{taskName}", Run)
 
-	log.Fatal(http.ListenAndServe(":8080", router))
 	log.Println("Start listening on 8080")
+	log.Fatal(http.ListenAndServe(conf.General.Listen, router))
 }
 
 func Run(w http.ResponseWriter, r *http.Request){
@@ -56,7 +59,7 @@ func executeTask(task_id string) string {
 	executeCmd := func(cmdStr string) interface{} {
 		var cmdOut []byte
 
-		cmd := exec.Command(CMD_INTERPRETER, CMD_FLAG, cmdStr)
+		cmd := exec.Command(conf.General.CmdInterpreter, conf.General.CmdFlag, cmdStr)
 
 		if cmdOut, err = cmd.Output(); err != nil {
 			log.Printf("!!! Error to execute line: %v", err)
@@ -72,7 +75,7 @@ func executeTask(task_id string) string {
 		return nil
 	}
 
-	if scriptFile, err = os.Open("./"+TASKS_DIR+"/" + task_id + "/script.sh"); err != nil {
+	if scriptFile, err = os.Open("./"+conf.General.TaskDir+"/" + task_id + "/script.sh"); err != nil {
 		//msg <- fmt.Sprintf("Error to open script file: %v", err)
 		return fmt.Sprintf("Error to open script file: %v", err)
 	}
