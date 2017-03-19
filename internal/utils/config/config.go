@@ -13,6 +13,8 @@ import (
 type TomlConfig struct {
 	General struct{
 		Listen string
+		Username string
+		Password string
 		CmdInterpreter string `toml:"cmd-interpreter"`
 		CmdFlag string `toml:"cmd-flag"`
 	}

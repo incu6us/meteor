@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"path/filepath"
 	"strings"
+	"github.com/abbot/go-http-auth"
 )
 
 const (
@@ -26,13 +27,27 @@ var (
 	TASK_DIR    = APP_PATH + string(filepath.Separator) + TaskDir
 )
 
+func httpSecret(user, realm string) string {
+	if user == conf.General.Username {
+		return conf.General.Password
+	}
+	return ""
+}
+
 func main() {
 
 	log.Printf("ROOT PATH: %s", APP_PATH)
 
+	routes := make(map[string]func(http.ResponseWriter, *http.Request))
+	routes["/api/task/run/{taskName}"] = Run
+
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/api/task/run/{taskName}", Run)
+	// curl example: -H 'Authorization: Basic dXNlcjpQQHNzdzByZA=='
+	authenticator := auth.NewBasicAuthenticator("meteor", httpSecret)
+	for k, v := range routes{
+		router.HandleFunc(k, auth.JustCheck(authenticator, v))
+	}
 
 	log.Println("Start listening on 8080")
 	if err := http.ListenAndServe(conf.General.Listen, router); err != nil {
