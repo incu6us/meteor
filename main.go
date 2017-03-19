@@ -62,6 +62,7 @@ func executeTask(taskName string) string {
 
 	var globalVars = make(map[string]string)
 	globalVars["$WORKSPACE"] = taskWorkspace
+	globalVars["$TASKSPACE"] = TASK_DIR+string(filepath.Separator)+taskName
 
 	if exists(taskWorkspace) == true {
 		log.Printf("Task is already running. Workspace: %s - is busy. Wait a while", taskWorkspace)
@@ -82,23 +83,14 @@ func executeTask(taskName string) string {
 	executeCmd := func(cmdStr string) interface{} {
 		var cmdOut []byte
 
-		// combine all vars exports
-		//if strings.Contains(cmdStr, "export") {
-		//	keys := strings.Replace(cmdStr, "&&", ";", -1)
-		//	keys = strings.Replace(keys, "||", ";", -1)
-		//	//keys = strings.Replace(keys, "export ", "", -1)
-		//	for _, key := range strings.Split(keys, ";") {
-		//		if strings.Contains(key, "export") {
-		//			key = strings.Replace(key, "export", "", 1)
-		//			key = strings.TrimSpace(key)
-		//			globalVars["$"+strings.Split(key, "=")[0]] = strings.Split(key, "=")[1]
-		//		}
-		//	}
-		//}
-
 		// $WORKSPACE global var
 		if strings.Contains(cmdStr, "$WORKSPACE") {
 			cmdStr = strings.Replace(cmdStr, "$WORKSPACE", globalVars["$WORKSPACE"], -1)+string(filepath.Separator)
+		}
+
+		// $TASKSPACE global var
+		if strings.Contains(cmdStr, "$TASKSPACE") {
+			cmdStr = strings.Replace(cmdStr, "$TASKSPACE", globalVars["$TASKSPACE"], -1)+string(filepath.Separator)
 		}
 
 		cmd := exec.Command(conf.General.CmdInterpreter, conf.General.CmdFlag, cmdStr)
