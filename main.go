@@ -10,20 +10,37 @@ import (
 	"bytes"
 	"github.com/incu6us/meteor/internal/utils/config"
 	"github.com/gorilla/mux"
+	"path/filepath"
 )
 
-var conf = config.GetConfig()
+const (
+	Workspace = "workspace"
+	TaskDir = "tasks"
+)
+
+var (
+	conf        = config.GetConfig()
+	APP_PATH, _ = os.Getwd()
+	WORKSPACE   = APP_PATH + string(filepath.Separator) + Workspace
+	TASK_DIR    = APP_PATH + string(filepath.Separator) + TaskDir
+)
 
 func main() {
+
+	log.Printf("ROOT PATH: %s", APP_PATH)
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/api/task/run/{taskName}", Run)
 
 	log.Println("Start listening on 8080")
-	log.Fatal(http.ListenAndServe(conf.General.Listen, router))
+	if err := http.ListenAndServe(conf.General.Listen, router); err != nil {
+		log.Panicln(err)
+	} else {
+		log.Printf("Start listening on %s", conf.General.Listen)
+	}
 }
 
-func Run(w http.ResponseWriter, r *http.Request){
+func Run(w http.ResponseWriter, r *http.Request) {
 	//w.Header().Set("Content-Type", "application/text")
 	w.WriteHeader(http.StatusOK)
 
@@ -37,17 +54,29 @@ func Run(w http.ResponseWriter, r *http.Request){
 
 	//go func() {
 
-		w.Write([]byte(executeTask(taskName)))
+	w.Write([]byte(executeTask(taskName)))
 	//}()
 
 }
 
-func executeTask(task_id string) string {
+func executeTask(taskName string) string {
+	taskWorkspace := WORKSPACE + string(filepath.Separator) + taskName
+
+	if exists(taskWorkspace) == true {
+		log.Printf("Task is already running. Workspace: %s - is busy. Wait a while", taskWorkspace)
+		return fmt.Sprintf("Task is already running. Workspace: %s - is busy. Wait a while", taskWorkspace)
+	}
+
 	//var msg = make(chan string)
 	var err error
 	var scriptFile *os.File
 
 	defer scriptFile.Close()
+
+	if err = os.MkdirAll(taskWorkspace, 0777); err != nil {
+		log.Println(err)
+	}
+	os.Chdir(taskWorkspace)
 
 	executeCmd := func(cmdStr string) interface{} {
 		var cmdOut []byte
@@ -55,6 +84,7 @@ func executeTask(task_id string) string {
 		cmd := exec.Command(conf.General.CmdInterpreter, conf.General.CmdFlag, cmdStr)
 
 		if cmdOut, err = cmd.Output(); err != nil {
+			cleanTaskWorkspace(taskWorkspace)
 			log.Printf("!!! Error to execute line: %v", err)
 			//msg <- fmt.Sprintf("!!! Error to execute line: %v", err)
 			return fmt.Sprintf("!!! Error to execute line: %v", err)
@@ -62,13 +92,16 @@ func executeTask(task_id string) string {
 
 		log.Printf("--- Output: %s", cmdOut)
 		//msg <- fmt.Sprintf("--- Output: %s", cmdOut)
-		if cmdOut != nil{
+		if cmdOut != nil {
 			return fmt.Sprintf("--- Output: %s", cmdOut)
 		}
 		return nil
 	}
 
-	if scriptFile, err = os.Open("./"+conf.General.TaskDir+"/" + task_id + "/script.sh"); err != nil {
+	if scriptFile, err = os.Open(
+		TASK_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "script.sh",
+	); err != nil {
+		cleanTaskWorkspace(taskWorkspace)
 		//msg <- fmt.Sprintf("Error to open script file: %v", err)
 		return fmt.Sprintf("Error to open script file: %v", err)
 	}
@@ -79,15 +112,39 @@ func executeTask(task_id string) string {
 	var buf bytes.Buffer
 	for scanner.Scan() {
 		str := scanner.Text()
-		if str != ""{
+		if str != "" {
 			log.Printf("--- Running: %s\n", str)
 			//msg <- fmt.Sprintf("--- Running: %s\n", str)
 			buf.WriteString(fmt.Sprintf("--- Running: %s\n", str))
 			if output := executeCmd(str); output != nil {
-				buf.WriteString(output.(string)+"\n\n")
+				buf.WriteString(output.(string) + "\n\n")
 			}
 		}
 	}
 
+	cleanTaskWorkspace(taskWorkspace)
+
 	return buf.String()
+}
+
+func cleanTaskWorkspace(taskWorkspace string) {
+	log.Printf("Cleaning: %s", taskWorkspace)
+	if err := os.RemoveAll(taskWorkspace); err != nil {
+		log.Printf("Error cleaning workdir: %v", err)
+	}
+}
+
+func exists(path string) (bool) {
+	_, err := os.Stat(path)
+	if err == nil {
+		log.Println("1", err)
+		return true
+	}
+
+	if os.IsNotExist(err) {
+		log.Println("2", err)
+		return false
+	}
+
+	return false
 }

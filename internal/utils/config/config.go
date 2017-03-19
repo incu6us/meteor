@@ -13,7 +13,6 @@ import (
 type TomlConfig struct {
 	General struct{
 		Listen string
-		TaskDir string `toml:"task-dir"`
 		CmdInterpreter string `toml:"cmd-interpreter"`
 		CmdFlag string `toml:"cmd-flag"`
 	}
