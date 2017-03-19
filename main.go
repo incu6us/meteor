@@ -13,6 +13,8 @@ import (
 
 const (
 	TASKS_DIR = "tasks"
+	CMD_INTERPRETER = "/bin/bash"
+	CMD_FLAG = "-c"
 )
 
 func main() {
@@ -22,6 +24,7 @@ func main() {
 	router.HandleFunc("/api/task/run/{taskName}", Run)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Println("Start listening on 8080")
 }
 
 func Run(w http.ResponseWriter, r *http.Request){
@@ -53,7 +56,7 @@ func executeTask(task_id string) string {
 	executeCmd := func(cmdStr string) interface{} {
 		var cmdOut []byte
 
-		cmd := exec.Command("/bin/bash", "-c", cmdStr)
+		cmd := exec.Command(CMD_INTERPRETER, CMD_FLAG, cmdStr)
 
 		if cmdOut, err = cmd.Output(); err != nil {
 			log.Printf("!!! Error to execute line: %v", err)
@@ -85,7 +88,7 @@ func executeTask(task_id string) string {
 			//msg <- fmt.Sprintf("--- Running: %s\n", str)
 			buf.WriteString(fmt.Sprintf("--- Running: %s\n", str))
 			if output := executeCmd(str); output != nil {
-				buf.WriteString(output.(string))
+				buf.WriteString(output.(string)+"\n\n")
 			}
 		}
 	}
