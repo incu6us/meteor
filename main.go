@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"github.com/abbot/go-http-auth"
+	"github.com/incu6us/meteor/internal/utils/passwd"
 )
 
 const (
@@ -27,9 +28,10 @@ var (
 	TASK_DIR    = APP_PATH + string(filepath.Separator) + TaskDir
 )
 
+
 func httpSecret(user, realm string) string {
 	if user == conf.General.Username {
-		return conf.General.Password
+		return passwd.GeneratePassword().GenApr1Password(conf.General.Password)
 	}
 	return ""
 }

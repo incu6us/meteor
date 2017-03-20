@@ -1,8 +1,10 @@
-hash: 81a0d09f1da27f5f43f75b5d33fd95e862db68c461b7a2d31f2a7505ed0b79d0
-updated: 2017-03-19T23:33:10.607699106+02:00
+hash: 0d4b37ae59859f1e6938b98da4ebd23f89df3e7cb8364260ebca5c41309b9e39
+updated: 2017-03-20T14:37:46.497915529+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
+- name: github.com/GehirnInc/crypt
+  version: ac56aff7aa79d1f7e2f763e74177af0a3095ca88
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
@@ -13,4 +15,9 @@ imports:
   version: 751171607256bb66e64c9f0220c00662420c38e9
   subpackages:
   - ast
+- name: golang.org/x/crypto
+  version: 1d77d5bd477a5879ed443a73e11a1a3dd9616d03
+  subpackages:
+  - bcrypt
+  - blowfish
 testImports: []

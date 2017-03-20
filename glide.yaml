@@ -6,3 +6,4 @@ import:
   version: ^0.1.0
 - package: github.com/abbot/go-http-auth
   version: ^0.3.0
+- package: github.com/GehirnInc/crypt
