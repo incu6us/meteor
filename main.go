@@ -58,7 +58,7 @@ func main() {
 }
 
 func Run(w http.ResponseWriter, r *http.Request) {
-	//w.Header().Set("Content-Type", "application/text")
+	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
 
 	vars := mux.Vars(r)
