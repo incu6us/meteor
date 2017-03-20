@@ -49,11 +49,9 @@ func main() {
 		router.HandleFunc(k, auth.JustCheck(authenticator, v))
 	}
 
-	log.Println("Start listening on 8080")
+	log.Printf("Start listening on %s", conf.General.Listen)
 	if err := http.ListenAndServe(conf.General.Listen, router); err != nil {
 		log.Panicln(err)
-	} else {
-		log.Printf("Start listening on %s", conf.General.Listen)
 	}
 }
 
