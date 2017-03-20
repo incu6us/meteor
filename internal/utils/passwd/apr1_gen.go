@@ -21,6 +21,7 @@ func (p *password) GetPasswdForHeader(username, password string) string {
 
 type Password interface {
 	GenApr1Password(plainPasswd string) string
+	GetPasswdForHeader(username, password string) string
 }
 
 func GeneratePassword() Password {

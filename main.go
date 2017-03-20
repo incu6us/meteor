@@ -39,6 +39,11 @@ func httpSecret(user, realm string) string {
 func main() {
 
 	log.Printf("ROOT PATH: %s", APP_PATH)
+	if conf.General.Username != "" {
+		log.Printf("ROOT HEADER PASSWORD: %s", passwd.GeneratePassword().GetPasswdForHeader(
+			conf.General.Username, conf.General.Password),
+		)
+	}
 
 	routes := make(map[string]func(http.ResponseWriter, *http.Request))
 	routes["/api/task/run/{taskName}"] = Run
