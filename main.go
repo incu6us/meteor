@@ -14,6 +14,11 @@ import (
 	"strings"
 	"github.com/abbot/go-http-auth"
 	"github.com/incu6us/meteor/internal/utils/passwd"
+	"io/ioutil"
+	"github.com/naoina/toml"
+	"github.com/incu6us/meteor/internal/utils/httputils"
+	"encoding/json"
+	"errors"
 )
 
 const (
@@ -62,6 +67,10 @@ func main() {
 	}
 }
 
+type SlackDataBody struct {
+	Text string
+}
+
 func Run(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
@@ -74,11 +83,67 @@ func Run(w http.ResponseWriter, r *http.Request) {
 
 	taskName := vars["taskName"]
 
-	w.Write([]byte(executeTask(taskName)))
+	sendSlack(taskName, "Job `"+taskName+"` has been started!")
 
+	result, err := executeTask(taskName)
+	if err != nil {
+		sendSlack(taskName, ":skull: Job `"+taskName+"` - *failed*!\nResult:\n```"+err.Error()+"```")
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	//fmt.Println(new(TaskConfig).taskConfig(taskName).Vars)
+
+	w.Write([]byte(result))
+
+	sendSlack(taskName, ":+1: Job `"+taskName+"` has been finished *successfully*!\nResult:\n```"+result+"```")
 }
 
-func executeTask(taskName string) string {
+func sendSlack(taskName, result string)  {
+	slackUrl := new(TaskConfig).taskConfig(taskName).Slack.Url
+	if slackUrl != ""{
+		payload := make(map[string]string)
+		payload["text"] = result
+		jsonPaylod, _ := json.Marshal(payload)
+
+		header := make(map[string]string)
+		header["Content-type"] = "application/json"
+
+		body := bytes.NewBuffer(jsonPaylod)
+		_, err := httputils.NewHTTPUtil().PostData(slackUrl, header, body, nil)
+		if err != nil {
+			log.Printf("Error sending to Slack: %v", err)
+		}
+	}
+}
+type TaskConfig struct {
+	Vars []struct{
+		Name string
+		Value string
+	}
+	Slack struct{
+		Url string
+	}
+}
+
+func (t *TaskConfig) taskConfig(taskName string) *TaskConfig {
+	var err error
+	var confFile []byte
+
+	if confFile, err = ioutil.ReadFile(
+		TASK_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "config",
+	); err != nil {
+		log.Printf("Error to open script file: %v", err)
+	}
+
+	if err := toml.Unmarshal(confFile, t); err != nil {
+		log.Printf("TOML error: %v", err)
+	}
+
+	return t
+}
+
+func executeTask(taskName string) (string, error) {
 	taskWorkspace := WORKSPACE + string(filepath.Separator) + taskName
 
 	var globalVars = make(map[string]string)
@@ -87,7 +152,7 @@ func executeTask(taskName string) string {
 
 	if exists(taskWorkspace) == true {
 		log.Printf("Task is already running. Workspace: %s - is busy. Wait a while", taskWorkspace)
-		return fmt.Sprintf("Task is already running. Workspace: %s - is busy. Wait a while", taskWorkspace)
+		return "", errors.New("Task is already running. Workspace: "+taskWorkspace+" - is busy. Wait a while...")
 	}
 
 	//var msg = make(chan string)
@@ -134,7 +199,7 @@ func executeTask(taskName string) string {
 		TASK_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "pipeline",
 	); err != nil {
 		//msg <- fmt.Sprintf("Error to open script file: %v", err)
-		return fmt.Sprintf("Error to open script file: %v", err)
+		return "", err
 	}
 
 	scanner := bufio.NewScanner(scriptFile)
@@ -160,7 +225,7 @@ func executeTask(taskName string) string {
 	log.Println()
 	log.Println()
 
-	return buf.String()
+	return buf.String(), nil
 }
 
 func cleanTaskWorkspace(taskWorkspace string) {

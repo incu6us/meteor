@@ -7,4 +7,6 @@ export TEST="test string" && echo $TEST
 
 ls -l
 
+sleep 2
+
 echo "finished"
