@@ -158,9 +158,10 @@ func (t *TaskConfig) taskConfig(taskName string) *TaskConfig {
 		log.Printf("Error to open script file: %v", err)
 	}
 
-	if err := toml.Unmarshal(confFile, t); err != nil {
-		log.Printf("TOML error: %v", err)
-	}
+	toml.Unmarshal(confFile, t)
+	//if err := toml.Unmarshal(confFile, t); err != nil {
+	//	log.Printf("TOML error: %v", err)
+	//}
 
 	return t
 }
