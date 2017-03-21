@@ -90,7 +90,7 @@ func SlackIntegration(w http.ResponseWriter, r *http.Request)  {
 	if token == conf.General.SlackToken {
 		taskName := data.Get("text")
 		responseUrl := data.Get("response_url")
-		executeHttpTask(w, taskName, responseUrl)
+		go executeHttpTask(w, taskName, responseUrl)
 		sendSlack(responseUrl, "", "Tasks was succefully queued!")
 	}else{
 		io.WriteString(w, "Wrong slack-token in meteor.conf")
