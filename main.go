@@ -104,7 +104,6 @@ func SlackHandler(h http.Handler) http.Handler {
 		} else {
 			io.WriteString(w, "Wrong slack-token accepted:"+token)
 		}
-
 	})
 }
 
