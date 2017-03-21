@@ -25,15 +25,17 @@ import (
 )
 
 const (
+	Workspace = "workspace"
+	TaskDir   = "tasks"
 	COMMAND_TASKLIST = "/tasklist"
 	COMMAND_TASKRUN = "/taskrun"
 )
 
 var (
 	conf        = config.GetConfig()
-	//APP_PATH, _ = os.Getwd()
-	WORKSPACE   = conf.General.WorkspaceDir
-	TASK_DIR    = conf.General.TasksDir
+	APP_PATH, _ = os.Getwd()
+	WORKSPACE   = APP_PATH + string(filepath.Separator) + Workspace
+	TASK_DIR    = APP_PATH + string(filepath.Separator) + TaskDir
 )
 
 func httpSecret(user, realm string) string {
@@ -45,7 +47,7 @@ func httpSecret(user, realm string) string {
 
 func main() {
 
-	//log.Printf("ROOT PATH: %s", APP_PATH)
+	log.Printf("ROOT PATH: %s", APP_PATH)
 	if conf.General.Username != "" {
 		log.Printf("ROOT HEADER PASSWORD: %s", passwd.GeneratePassword().GetPasswdForHeader(
 			conf.General.Username, conf.General.Password),
@@ -74,7 +76,6 @@ func main() {
 
 func SlackHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer r.Body.Close()
 
 		var data url.Values
 		var err error
@@ -113,7 +114,7 @@ func SlackListFunc(w http.ResponseWriter, r *http.Request) {
 
 	listOfTasks.WriteString("Tasks list:\n")
 
-	if files, err = ioutil.ReadDir(conf.General.TasksDir); err != nil {
+	if files, err = ioutil.ReadDir(TASK_DIR); err != nil {
 		log.Println(err)
 		listOfTasks.WriteString("`empty`")
 		w.Write(listOfTasks.Bytes())
@@ -244,7 +245,7 @@ func executeTask(taskName string) (string, error) {
 
 	if exists(taskWorkspace) == true {
 		log.Printf("Task is already running. Workspace: %s - is busy. Wait a while", taskWorkspace)
-		return "", errors.New("Task is already running. Workspace: " + taskWorkspace + " - is busy. Wait a while or delete this directory...")
+		return "", errors.New("Task is already running. Workspace: " + taskWorkspace + " - is busy. Wait a while...")
 	}
 
 	//var msg = make(chan string)
@@ -291,8 +292,6 @@ func executeTask(taskName string) (string, error) {
 		TASK_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "pipeline",
 	); err != nil {
 		//msg <- fmt.Sprintf("Error to open script file: %v", err)
-		path, _ := os.Getwd()
-		log.Printf("PWD: %v", path)
 		return "", err
 	}
 
