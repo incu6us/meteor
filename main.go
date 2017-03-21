@@ -76,6 +76,9 @@ func Run(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
+	var startExecutionCommandTime time.Time
+	var endExecutionCommandTime time.Duration
+
 	vars := mux.Vars(r)
 
 	//var msg = make(chan string)
@@ -91,10 +94,12 @@ func Run(w http.ResponseWriter, r *http.Request) {
 	if mess != "" {
 		log.Printf("Slack message: %s", mess)
 	}
-	startExecutionCommandTime := time.Now()
+	startExecutionCommandTime = time.Now()
 	result, err := executeTask(taskName)
 	if err != nil {
-		sendSlack(taskName, ":skull: Job `"+taskName+"` - *failed*!\nResult:\n```"+err.Error()+"```")
+		endExecutionCommandTime = time.Now().Sub(startExecutionCommandTime)
+		sendSlack(taskName, ":skull: Job `"+taskName+"` - *failed*!\nResult:\n" +
+			"Result:\n```"+result+"\n"+err.Error()+"```\nExecution time: *"+endExecutionCommandTime.String()+"*")
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -103,8 +108,7 @@ func Run(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte(result))
 
-	//endExecutionCommandTime := startExecutionCommandTime.Sub(time.Now())
-	endExecutionCommandTime := time.Now().Sub(startExecutionCommandTime)
+	endExecutionCommandTime = time.Now().Sub(startExecutionCommandTime)
 	mess, err = sendSlack(taskName, ":+1: Job `"+taskName+"` has been finished *successfully*!\n" +
 		"Result:\n```"+result+"```\nExecution time: *"+endExecutionCommandTime.String()+"*")
 	if err != nil{
