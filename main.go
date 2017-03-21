@@ -72,8 +72,9 @@ func main() {
 
 func SlackIntegration(w http.ResponseWriter, r *http.Request)  {
 	defer r.Body.Close()
-	
-	fmt.Println(r.Body)
+
+	data, _ := ioutil.ReadAll(r.Body)
+	fmt.Printf("%s", data)
 }
 
 func Run(w http.ResponseWriter, r *http.Request) {
