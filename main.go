@@ -78,8 +78,6 @@ func SlackHandler(h http.Handler) http.Handler {
 		var data url.Values
 		var err error
 
-		origRequest := &r
-		
 		byteData, _ := ioutil.ReadAll(r.Body)
 		log.Printf("Debug from Slack: %s", byteData)
 
@@ -90,7 +88,7 @@ func SlackHandler(h http.Handler) http.Handler {
 		token := data.Get("token")
 
 		if token == conf.General.SlackToken {
-			h.ServeHTTP(w, *origRequest)
+			h.ServeHTTP(w, r)
 		} else {
 			io.WriteString(w, "Wrong slack-token accepted:"+token)
 		}
@@ -98,8 +96,6 @@ func SlackHandler(h http.Handler) http.Handler {
 	})
 }
 func SlackListFunc(w http.ResponseWriter, r *http.Request) {
-
-	defer r.Body.Close()
 
 	var listOfTasks bytes.Buffer
 	var files []os.FileInfo
@@ -122,8 +118,6 @@ func SlackListFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 func SlackRunFunc(w http.ResponseWriter, r *http.Request) {
-
-	defer r.Body.Close()
 
 	var data url.Values
 	var err error
