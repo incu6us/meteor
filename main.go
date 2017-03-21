@@ -25,8 +25,6 @@ import (
 )
 
 const (
-	Workspace = "workspace"
-	TaskDir   = "tasks"
 	COMMAND_TASKLIST = "/tasklist"
 	COMMAND_TASKRUN = "/taskrun"
 )
@@ -34,8 +32,8 @@ const (
 var (
 	conf        = config.GetConfig()
 	APP_PATH, _ = os.Getwd()
-	WORKSPACE   = APP_PATH + string(filepath.Separator) + Workspace
-	TASK_DIR    = APP_PATH + string(filepath.Separator) + TaskDir
+	WORKSPACE   = conf.General.WorkspaceDir
+	TASK_DIR    = conf.General.TasksDir
 )
 
 func httpSecret(user, realm string) string {
@@ -114,7 +112,7 @@ func SlackListFunc(w http.ResponseWriter, r *http.Request) {
 
 	listOfTasks.WriteString("Tasks list:\n")
 
-	if files, err = ioutil.ReadDir("." + string(filepath.Separator) + "tasks"); err != nil {
+	if files, err = ioutil.ReadDir(conf.General.TasksDir); err != nil {
 		log.Println(err)
 		listOfTasks.WriteString("`empty`")
 		w.Write(listOfTasks.Bytes())

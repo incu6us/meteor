@@ -12,6 +12,8 @@ import (
 // TomlConfig - config structure
 type TomlConfig struct {
 	General struct{
+		TasksDir string `toml:"tasks-dir"`
+		WorkspaceDir string `toml:"workspace-dir"`
 		Listen string
 		Username string
 		Password string
