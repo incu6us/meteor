@@ -106,6 +106,7 @@ func SlackHandler(h http.Handler) http.Handler {
 
 	})
 }
+
 func SlackListFunc(w http.ResponseWriter, r *http.Request) {
 
 	var listOfTasks bytes.Buffer
