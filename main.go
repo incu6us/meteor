@@ -27,8 +27,8 @@ import (
 const (
 	Workspace = "workspace"
 	TaskDir   = "tasks"
-	COMMAND_TASKLIST = "tasklist"
-	COMMAND_TASKRUN = "taskrun"
+	COMMAND_TASKLIST = "/tasklist"
+	COMMAND_TASKRUN = "/taskrun"
 )
 
 var (
@@ -55,7 +55,7 @@ func main() {
 	}
 
 	routes := make(map[string]func(http.ResponseWriter, *http.Request))
-	routes["/api/task/run/{taskName}"] = Run
+	routes["/api/task/run/{taskName}"] = RunFunc
 
 	router := mux.NewRouter().StrictSlash(true)
 
@@ -128,26 +128,7 @@ func SlackListFunc(w http.ResponseWriter, r *http.Request) {
 	w.Write(listOfTasks.Bytes())
 }
 
-//func SlackRunFunc(w http.ResponseWriter, r *http.Request) {
-//
-//	var data url.Values
-//	var err error
-//
-//	byteData, _ := ioutil.ReadAll(r.Body)
-//
-//	if data, err = url.ParseQuery(string(byteData)); err != nil {
-//		log.Printf("Error to parse string from Slack: %v", err)
-//	}
-//
-//	//taskName := data.Get("text")
-//	//log.Printf("TASKNAME: %s", taskName)
-//	//
-//	//responseUrl := data.Get("response_url")
-//	go executeHttpTask(w, taskName, responseUrl)
-//	sendSlack(responseUrl, "", "Task was succefully queued!")
-//}
-
-func Run(w http.ResponseWriter, r *http.Request) {
+func RunFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
