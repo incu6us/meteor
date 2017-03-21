@@ -62,14 +62,18 @@ func main() {
 		router.HandleFunc(k, auth.JustCheck(authenticator, v))
 	}
 
+	router.HandleFunc("/api/integration/slack", SlackIntegration)
+
 	log.Printf("Start listening on %s", conf.General.Listen)
 	if err := http.ListenAndServe(conf.General.Listen, router); err != nil {
 		log.Panicln(err)
 	}
 }
 
-type SlackDataBody struct {
-	Text string
+func SlackIntegration(w http.ResponseWriter, r *http.Request)  {
+	defer r.Body.Close()
+	
+	fmt.Println(r.Body)
 }
 
 func Run(w http.ResponseWriter, r *http.Request) {
