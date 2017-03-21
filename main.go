@@ -36,7 +36,6 @@ var (
 	TASK_DIR    = APP_PATH + string(filepath.Separator) + TaskDir
 )
 
-
 func httpSecret(user, realm string) string {
 	if user == conf.General.Username {
 		return passwd.GeneratePassword().GenApr1Password(conf.General.Password)
@@ -60,12 +59,12 @@ func main() {
 
 	// curl example: -H 'Authorization: Basic dXNlcjpQQHNzdzByZA=='
 	authenticator := auth.NewBasicAuthenticator("meteor", httpSecret)
-	for k, v := range routes{
+	for k, v := range routes {
 		router.HandleFunc(k, auth.JustCheck(authenticator, v))
 	}
 
-	router.HandleFunc("/api/integration/slack/run", SlackRun)
-	router.HandleFunc("/api/integration/slack/list", SlackList)
+	router.Handle("/api/integration/slack/list", SlackHandler(http.HandlerFunc(SlackListFunc)))
+	router.Handle("/api/integration/slack/run", SlackHandler(http.HandlerFunc(SlackRunFunc)))
 
 	log.Printf("Start listening on %s", conf.General.Listen)
 	if err := http.ListenAndServe(conf.General.Listen, router); err != nil {
@@ -73,68 +72,69 @@ func main() {
 	}
 }
 
-func SlackList(w http.ResponseWriter, r *http.Request)  {
+func SlackHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	var data url.Values
-	var err error
+		defer r.Body.Close()
 
-	byteData, _ := ioutil.ReadAll(r.Body)
-	log.Printf("Debug from Slack: %s", byteData)
-
-	if data, err = url.ParseQuery(string(byteData)); err != nil {
-		log.Printf("Error to parse string from Slack: %v", err)
-	}
-
-	token := data.Get("token")
-
-	if token == conf.General.SlackToken {
-
-		var listOfTasks bytes.Buffer
-		var files []os.FileInfo
+		var data url.Values
 		var err error
 
-		listOfTasks.WriteString("Tasks list:\n")
 
-		if files, err = ioutil.ReadDir("."+string(filepath.Separator)+"tasks"); err != nil {
-			log.Println(err)
-			listOfTasks.WriteString("`empty`")
-			w.Write(listOfTasks.Bytes())
-			return
+		byteData, _ := ioutil.ReadAll(r.Body)
+		log.Printf("Debug from Slack: %s", byteData)
+
+		if data, err = url.ParseQuery(string(byteData)); err != nil {
+			log.Printf("Error to parse string from Slack: %v", err)
 		}
 
-		for _, file := range files {
-			listOfTasks.WriteString("\t`" + file.Name() + "`\n")
+		token := data.Get("token")
+
+		if token == conf.General.SlackToken {
+			h.ServeHTTP(w, r)
+		} else {
+			io.WriteString(w, "Wrong slack-token accepted:"+token)
 		}
 
+	})
+}
+func SlackListFunc(w http.ResponseWriter, r *http.Request) {
+
+	var listOfTasks bytes.Buffer
+	var files []os.FileInfo
+	var err error
+
+	listOfTasks.WriteString("Tasks list:\n")
+
+	if files, err = ioutil.ReadDir("." + string(filepath.Separator) + "tasks"); err != nil {
+		log.Println(err)
+		listOfTasks.WriteString("`empty`")
 		w.Write(listOfTasks.Bytes())
-	}else{
-		io.WriteString(w, "Wrong slack-token accepted:"+token)
+		return
 	}
+
+	for _, file := range files {
+		listOfTasks.WriteString("\t`" + file.Name() + "`\n")
+	}
+
+	w.Write(listOfTasks.Bytes())
 }
 
-func SlackRun(w http.ResponseWriter, r *http.Request)  {
-	defer r.Body.Close()
+func SlackRunFunc(w http.ResponseWriter, r *http.Request) {
 
 	var data url.Values
 	var err error
 
 	byteData, _ := ioutil.ReadAll(r.Body)
-	log.Printf("Debug from Slack: %s", byteData)
 
 	if data, err = url.ParseQuery(string(byteData)); err != nil {
 		log.Printf("Error to parse string from Slack: %v", err)
 	}
 
-	token := data.Get("token")
-
-	if token == conf.General.SlackToken {
-		taskName := data.Get("text")
-		responseUrl := data.Get("response_url")
-		go executeHttpTask(w, taskName, responseUrl)
-		sendSlack(responseUrl, "", "Task was succefully queued!")
-	}else{
-		io.WriteString(w, "Wrong slack-token accepted:"+token)
-	}
+	taskName := data.Get("text")
+	responseUrl := data.Get("response_url")
+	go executeHttpTask(w, taskName, responseUrl)
+	sendSlack(responseUrl, "", "Task was succefully queued!")
 }
 
 func Run(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +149,6 @@ func Run(w http.ResponseWriter, r *http.Request) {
 
 	taskName := vars["taskName"]
 
-
 	executeHttpTask(w, taskName, "")
 }
 
@@ -158,7 +157,7 @@ func executeHttpTask(w http.ResponseWriter, taskName, responseUrl string) {
 	var endExecutionCommandTime time.Duration
 
 	mess, err := sendSlack(responseUrl, taskName, "Job `"+taskName+"` has been started!")
-	if err != nil{
+	if err != nil {
 		log.Printf("Slack error: %v", err)
 	}
 	if mess != "" {
@@ -168,8 +167,7 @@ func executeHttpTask(w http.ResponseWriter, taskName, responseUrl string) {
 	result, err := executeTask(taskName)
 	if err != nil {
 		endExecutionCommandTime = time.Now().Sub(startExecutionCommandTime)
-		sendSlack(responseUrl, taskName, ":skull: Job `"+taskName+"` - *failed*!\n" +
-			"Result:\n```"+result+"\n"+err.Error()+"```\nExecution time: *"+endExecutionCommandTime.String()+"*")
+		sendSlack(responseUrl, taskName, ":skull: Job `"+taskName+"` - *failed*!\n"+"Result:\n```"+result+"\n"+err.Error()+"```\nExecution time: *"+endExecutionCommandTime.String()+"*")
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -179,9 +177,8 @@ func executeHttpTask(w http.ResponseWriter, taskName, responseUrl string) {
 	w.Write([]byte(result))
 
 	endExecutionCommandTime = time.Now().Sub(startExecutionCommandTime)
-	mess, err = sendSlack(responseUrl, taskName, ":+1: Job `"+taskName+"` has been finished *successfully*!\n" +
-		"Result:\n```"+result+"```\nExecution time: *"+endExecutionCommandTime.String()+"*")
-	if err != nil{
+	mess, err = sendSlack(responseUrl, taskName, ":+1: Job `"+taskName+"` has been finished *successfully*!\n"+"Result:\n```"+result+"```\nExecution time: *"+endExecutionCommandTime.String()+"*")
+	if err != nil {
 		log.Printf("Slack error: %v", err)
 	}
 	if mess != "" {
@@ -198,7 +195,7 @@ func sendSlack(slackUrl, taskName, result string) (string, error) {
 
 	slackWebHookUrl = new(TaskConfig).taskConfig(taskName).Slack.WebHookUrl
 
-	if slackWebHookUrl != ""{
+	if slackWebHookUrl != "" {
 		return slackMessage(slackWebHookUrl, result)
 	}
 	return "", nil
@@ -221,11 +218,11 @@ func slackMessage(slackUrl, result string) (string, error) {
 }
 
 type TaskConfig struct {
-	Vars []struct{
-		Name string
+	Vars []struct {
+		Name  string
 		Value string
 	}
-	Slack struct{
+	Slack struct {
 		WebHookUrl string `toml:"webhook-url"`
 	}
 }
@@ -253,11 +250,11 @@ func executeTask(taskName string) (string, error) {
 
 	var globalVars = make(map[string]string)
 	globalVars["$WORKSPACE"] = taskWorkspace
-	globalVars["$TASKSPACE"] = TASK_DIR+string(filepath.Separator)+taskName
+	globalVars["$TASKSPACE"] = TASK_DIR + string(filepath.Separator) + taskName
 
 	if exists(taskWorkspace) == true {
 		log.Printf("Task is already running. Workspace: %s - is busy. Wait a while", taskWorkspace)
-		return "", errors.New("Task is already running. Workspace: "+taskWorkspace+" - is busy. Wait a while...")
+		return "", errors.New("Task is already running. Workspace: " + taskWorkspace + " - is busy. Wait a while...")
 	}
 
 	//var msg = make(chan string)
@@ -276,12 +273,12 @@ func executeTask(taskName string) (string, error) {
 
 		// $WORKSPACE global var
 		if strings.Contains(cmdStr, "$WORKSPACE") {
-			cmdStr = strings.Replace(cmdStr, "$WORKSPACE", globalVars["$WORKSPACE"], -1)+string(filepath.Separator)
+			cmdStr = strings.Replace(cmdStr, "$WORKSPACE", globalVars["$WORKSPACE"], -1) + string(filepath.Separator)
 		}
 
 		// $TASKSPACE global var
 		if strings.Contains(cmdStr, "$TASKSPACE") {
-			cmdStr = strings.Replace(cmdStr, "$TASKSPACE", globalVars["$TASKSPACE"], -1)+string(filepath.Separator)
+			cmdStr = strings.Replace(cmdStr, "$TASKSPACE", globalVars["$TASKSPACE"], -1) + string(filepath.Separator)
 		}
 
 		cmd := exec.Command(conf.General.CmdInterpreter, conf.General.CmdFlag, cmdStr)
@@ -320,11 +317,11 @@ func executeTask(taskName string) (string, error) {
 			log.Printf("--- Running: %s\n", str)
 			//msg <- fmt.Sprintf("--- Running: %s\n", str)
 			buf.WriteString(fmt.Sprintf("--- Running: %s\n", str))
-			if output, err = executeCmd(str);err != nil{
+			if output, err = executeCmd(str); err != nil {
 				cleanTaskWorkspace(taskWorkspace)
 				return buf.String(), err
 			}
-			if	output != "" {
+			if output != "" {
 				buf.WriteString(output + "\n\n")
 			}
 		}
