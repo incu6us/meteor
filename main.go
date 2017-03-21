@@ -20,6 +20,8 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
+	"net/url"
+	"io"
 )
 
 const (
@@ -73,18 +75,31 @@ func main() {
 func SlackIntegration(w http.ResponseWriter, r *http.Request)  {
 	defer r.Body.Close()
 
-	r.Header.Set("Content-Type", "application/json")
+	var data url.Values
+	var err error
 
-	data, _ := ioutil.ReadAll(r.Body)
-	log.Printf("%s", data)
+	byteData, _ := ioutil.ReadAll(r.Body)
+	log.Printf("Debug from Slack: %s", byteData)
+
+	if data, err = url.ParseQuery(string(byteData)); err != nil {
+		log.Printf("Error to parse string from Slack: %v", err)
+	}
+
+	token := data.Get("token")
+
+	if token == conf.General.SlackToken {
+		taskName := data.Get("text")
+		responseUrl := data.Get("response_url")
+		executeHttpTask(w, taskName, responseUrl)
+		sendSlack(responseUrl, "", "Tasks was succefully queued!")
+	}else{
+		io.WriteString(w, "Wrong slack-token in meteor.conf")
+	}
 }
 
 func Run(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-
-	var startExecutionCommandTime time.Time
-	var endExecutionCommandTime time.Duration
 
 	vars := mux.Vars(r)
 
@@ -94,7 +109,15 @@ func Run(w http.ResponseWriter, r *http.Request) {
 
 	taskName := vars["taskName"]
 
-	mess, err := sendSlack(taskName, "Job `"+taskName+"` has been started!")
+
+	executeHttpTask(w, taskName, "")
+}
+
+func executeHttpTask(w http.ResponseWriter, taskName, responseUrl string) {
+	var startExecutionCommandTime time.Time
+	var endExecutionCommandTime time.Duration
+
+	mess, err := sendSlack(responseUrl, taskName, "Job `"+taskName+"` has been started!")
 	if err != nil{
 		log.Printf("Slack error: %v", err)
 	}
@@ -105,7 +128,7 @@ func Run(w http.ResponseWriter, r *http.Request) {
 	result, err := executeTask(taskName)
 	if err != nil {
 		endExecutionCommandTime = time.Now().Sub(startExecutionCommandTime)
-		sendSlack(taskName, ":skull: Job `"+taskName+"` - *failed*!\n" +
+		sendSlack(responseUrl, taskName, ":skull: Job `"+taskName+"` - *failed*!\n" +
 			"Result:\n```"+result+"\n"+err.Error()+"```\nExecution time: *"+endExecutionCommandTime.String()+"*")
 		w.Write([]byte(err.Error()))
 		return
@@ -116,7 +139,7 @@ func Run(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(result))
 
 	endExecutionCommandTime = time.Now().Sub(startExecutionCommandTime)
-	mess, err = sendSlack(taskName, ":+1: Job `"+taskName+"` has been finished *successfully*!\n" +
+	mess, err = sendSlack(responseUrl, taskName, ":+1: Job `"+taskName+"` has been finished *successfully*!\n" +
 		"Result:\n```"+result+"```\nExecution time: *"+endExecutionCommandTime.String()+"*")
 	if err != nil{
 		log.Printf("Slack error: %v", err)
@@ -126,25 +149,37 @@ func Run(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func sendSlack(taskName, result string) (string, error) {
-	slackUrl := new(TaskConfig).taskConfig(taskName).Slack.Url
-	if slackUrl != ""{
-		payload := make(map[string]string)
-		payload["text"] = result
-		jsonPaylod, _ := json.Marshal(payload)
+func sendSlack(slackUrl, taskName, result string) (string, error) {
+	var slackWebHookUrl string
 
-		header := make(map[string]string)
-		header["Content-type"] = "application/json"
+	if slackUrl != "" {
+		return slackMessage(slackUrl, result)
+	}
 
-		body := bytes.NewBuffer(jsonPaylod)
-		resp, err := httputils.NewHTTPUtil().PostData(slackUrl, header, body, nil)
-		if err != nil {
-			return "", err
-		}
-		return string(resp), nil
+	slackWebHookUrl = new(TaskConfig).taskConfig(taskName).Slack.Url
+
+	if slackWebHookUrl == ""{
+		return slackMessage(slackWebHookUrl, result)
 	}
 	return "", nil
 }
+
+func slackMessage(slackUrl, result string) (string, error) {
+	payload := make(map[string]string)
+	payload["text"] = result
+	jsonPaylod, _ := json.Marshal(payload)
+
+	header := make(map[string]string)
+	header["Content-type"] = "application/json"
+
+	body := bytes.NewBuffer(jsonPaylod)
+	resp, err := httputils.NewHTTPUtil().PostData(slackUrl, header, body, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(resp), nil
+}
+
 type TaskConfig struct {
 	Vars []struct{
 		Name string

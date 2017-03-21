@@ -17,6 +17,7 @@ type TomlConfig struct {
 		Password string
 		CmdInterpreter string `toml:"cmd-interpreter"`
 		CmdFlag string `toml:"cmd-flag"`
+		SlackToken string `toml:"slack-token"`
 	}
 }
 
