@@ -93,7 +93,7 @@ func SlackList(w http.ResponseWriter, r *http.Request)  {
 		var files []os.FileInfo
 		var err error
 
-		listOfTasks.WriteString("List:\n")
+		listOfTasks.WriteString("Tasks list:\n")
 
 		if files, err = ioutil.ReadDir("tasks"); err != nil {
 			log.Println(err)
