@@ -19,6 +19,7 @@ import (
 	"github.com/incu6us/meteor/internal/utils/httputils"
 	"encoding/json"
 	"errors"
+	"time"
 )
 
 const (
@@ -83,8 +84,14 @@ func Run(w http.ResponseWriter, r *http.Request) {
 
 	taskName := vars["taskName"]
 
-	sendSlack(taskName, "Job `"+taskName+"` has been started!")
-
+	mess, err := sendSlack(taskName, "Job `"+taskName+"` has been started!")
+	if err != nil{
+		log.Printf("Slack error: %v", err)
+	}
+	if mess != "" {
+		log.Printf("Slack message: %s", mess)
+	}
+	startExecutionCommandTime := time.Now()
 	result, err := executeTask(taskName)
 	if err != nil {
 		sendSlack(taskName, ":skull: Job `"+taskName+"` - *failed*!\nResult:\n```"+err.Error()+"```")
@@ -96,10 +103,19 @@ func Run(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte(result))
 
-	sendSlack(taskName, ":+1: Job `"+taskName+"` has been finished *successfully*!\nResult:\n```"+result+"```")
+	//endExecutionCommandTime := startExecutionCommandTime.Sub(time.Now())
+	endExecutionCommandTime := time.Now().Sub(startExecutionCommandTime)
+	mess, err = sendSlack(taskName, ":+1: Job `"+taskName+"` has been finished *successfully*!\n" +
+		"Result:\n```"+result+"```\nExecution time: *"+endExecutionCommandTime.String()+"*")
+	if err != nil{
+		log.Printf("Slack error: %v", err)
+	}
+	if mess != "" {
+		log.Printf("Slack message: %s", mess)
+	}
 }
 
-func sendSlack(taskName, result string)  {
+func sendSlack(taskName, result string) (string, error) {
 	slackUrl := new(TaskConfig).taskConfig(taskName).Slack.Url
 	if slackUrl != ""{
 		payload := make(map[string]string)
@@ -110,11 +126,13 @@ func sendSlack(taskName, result string)  {
 		header["Content-type"] = "application/json"
 
 		body := bytes.NewBuffer(jsonPaylod)
-		_, err := httputils.NewHTTPUtil().PostData(slackUrl, header, body, nil)
+		resp, err := httputils.NewHTTPUtil().PostData(slackUrl, header, body, nil)
 		if err != nil {
-			log.Printf("Error sending to Slack: %v", err)
+			return "", err
 		}
+		return string(resp), nil
 	}
+	return "", nil
 }
 type TaskConfig struct {
 	Vars []struct{
@@ -166,7 +184,7 @@ func executeTask(taskName string) (string, error) {
 	}
 	os.Chdir(taskWorkspace)
 
-	executeCmd := func(cmdStr string) interface{} {
+	executeCmd := func(cmdStr string) (string, error) {
 		var cmdOut []byte
 
 		// $WORKSPACE global var
@@ -184,15 +202,15 @@ func executeTask(taskName string) (string, error) {
 		if cmdOut, err = cmd.CombinedOutput(); err != nil {
 			log.Printf("!!! Error to execute line: %v\n%s", err, cmdOut)
 			//msg <- fmt.Sprintf("!!! Error to execute line: %v", err)
-			return fmt.Sprintf("!!! Error to execute line: %v\n%s", err, cmdOut)
+			return "", errors.New(fmt.Sprintf("!!! Error to execute line: %v\n%s", err, cmdOut))
 		}
 
 		log.Printf("--- Output: %s", cmdOut)
 		//msg <- fmt.Sprintf("--- Output: %s", cmdOut)
 		if cmdOut != nil {
-			return fmt.Sprintf("--- Output: %s", cmdOut)
+			return fmt.Sprintf("--- Output: %s", cmdOut), nil
 		}
-		return nil
+		return "", nil
 	}
 
 	if scriptFile, err = os.Open(
@@ -209,13 +227,17 @@ func executeTask(taskName string) (string, error) {
 	log.Printf("Running a script: %s", taskName)
 
 	for scanner.Scan() {
+		var output string
 		str := scanner.Text()
 		if str != "" && !strings.HasPrefix(str, "#") {
 			log.Printf("--- Running: %s\n", str)
 			//msg <- fmt.Sprintf("--- Running: %s\n", str)
 			buf.WriteString(fmt.Sprintf("--- Running: %s\n", str))
-			if output := executeCmd(str); output != nil {
-				buf.WriteString(output.(string) + "\n\n")
+			if output, err = executeCmd(str);err != nil{
+				return buf.String(), err
+			}
+			if	output != "" {
+				buf.WriteString(output + "\n\n")
 			}
 		}
 	}
