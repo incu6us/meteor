@@ -98,7 +98,7 @@ func Run(w http.ResponseWriter, r *http.Request) {
 	result, err := executeTask(taskName)
 	if err != nil {
 		endExecutionCommandTime = time.Now().Sub(startExecutionCommandTime)
-		sendSlack(taskName, ":skull: Job `"+taskName+"` - *failed*!\nResult:\n" +
+		sendSlack(taskName, ":skull: Job `"+taskName+"` - *failed*!\n" +
 			"Result:\n```"+result+"\n"+err.Error()+"```\nExecution time: *"+endExecutionCommandTime.String()+"*")
 		w.Write([]byte(err.Error()))
 		return
