@@ -167,8 +167,6 @@ func executeHttpTask(w http.ResponseWriter, taskName, responseUrl string) {
 
 	//fmt.Println(new(TaskConfig).taskConfig(taskName).Vars)
 
-	w.Write([]byte(result))
-
 	endExecutionCommandTime = time.Now().Sub(startExecutionCommandTime)
 	mess, err = sendSlack(responseUrl, taskName, ":+1: Job `"+taskName+"` has been finished *successfully*!\n"+"Result:\n```"+result+"```\nExecution time: *"+endExecutionCommandTime.String()+"*")
 	if err != nil {
@@ -177,6 +175,8 @@ func executeHttpTask(w http.ResponseWriter, taskName, responseUrl string) {
 	if mess != "" {
 		log.Printf("Slack message: %s", mess)
 	}
+
+	w.Write([]byte(result))
 }
 
 func sendSlack(slackUrl, taskName, result string) (string, error) {
