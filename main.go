@@ -27,6 +27,8 @@ import (
 const (
 	Workspace = "workspace"
 	TaskDir   = "tasks"
+	COMMAND_TASKLIST = "tasklist"
+	COMMAND_TASKRUN = "taskrun"
 )
 
 var (
@@ -64,7 +66,7 @@ func main() {
 	}
 
 	router.Handle("/api/integration/slack/list", SlackHandler(http.HandlerFunc(SlackListFunc)))
-	router.Handle("/api/integration/slack/run", SlackHandler(http.HandlerFunc(SlackRunFunc)))
+	router.Handle("/api/integration/slack/run", SlackHandler(http.HandlerFunc(nil)))
 
 	log.Printf("Start listening on %s", conf.General.Listen)
 	if err := http.ListenAndServe(conf.General.Listen, router); err != nil {
@@ -86,9 +88,18 @@ func SlackHandler(h http.Handler) http.Handler {
 		}
 
 		token := data.Get("token")
+		taskName := data.Get("text")
+		command := data.Get("command")
+		responseUrl := data.Get("response_url")
 
 		if token == conf.General.SlackToken {
-			h.ServeHTTP(w, r)
+			if command == COMMAND_TASKLIST {
+				h.ServeHTTP(w, r)
+			}
+			if command == COMMAND_TASKRUN {
+				go executeHttpTask(w, taskName, responseUrl)
+				sendSlack(responseUrl, "", "Task was succefully queued!")
+			}
 		} else {
 			io.WriteString(w, "Wrong slack-token accepted:"+token)
 		}
@@ -117,24 +128,24 @@ func SlackListFunc(w http.ResponseWriter, r *http.Request) {
 	w.Write(listOfTasks.Bytes())
 }
 
-func SlackRunFunc(w http.ResponseWriter, r *http.Request) {
-
-	var data url.Values
-	var err error
-
-	byteData, _ := ioutil.ReadAll(r.Body)
-
-	if data, err = url.ParseQuery(string(byteData)); err != nil {
-		log.Printf("Error to parse string from Slack: %v", err)
-	}
-
-	taskName := data.Get("text")
-	log.Printf("TASKNAME: %s", taskName)
-
-	responseUrl := data.Get("response_url")
-	go executeHttpTask(w, taskName, responseUrl)
-	sendSlack(responseUrl, "", "Task was succefully queued!")
-}
+//func SlackRunFunc(w http.ResponseWriter, r *http.Request) {
+//
+//	var data url.Values
+//	var err error
+//
+//	byteData, _ := ioutil.ReadAll(r.Body)
+//
+//	if data, err = url.ParseQuery(string(byteData)); err != nil {
+//		log.Printf("Error to parse string from Slack: %v", err)
+//	}
+//
+//	//taskName := data.Get("text")
+//	//log.Printf("TASKNAME: %s", taskName)
+//	//
+//	//responseUrl := data.Get("response_url")
+//	go executeHttpTask(w, taskName, responseUrl)
+//	sendSlack(responseUrl, "", "Task was succefully queued!")
+//}
 
 func Run(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
