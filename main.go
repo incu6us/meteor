@@ -64,7 +64,8 @@ func main() {
 		router.HandleFunc(k, auth.JustCheck(authenticator, v))
 	}
 
-	router.HandleFunc("/api/integration/slack/run", SlackIntegration)
+	router.HandleFunc("/api/integration/slack/run", SlackRun)
+	router.HandleFunc("/api/integration/slack/list", SlackList)
 
 	log.Printf("Start listening on %s", conf.General.Listen)
 	if err := http.ListenAndServe(conf.General.Listen, router); err != nil {
@@ -72,7 +73,46 @@ func main() {
 	}
 }
 
-func SlackIntegration(w http.ResponseWriter, r *http.Request)  {
+func SlackList(w http.ResponseWriter, r *http.Request)  {
+
+	var data url.Values
+	var err error
+
+	byteData, _ := ioutil.ReadAll(r.Body)
+	log.Printf("Debug from Slack: %s", byteData)
+
+	if data, err = url.ParseQuery(string(byteData)); err != nil {
+		log.Printf("Error to parse string from Slack: %v", err)
+	}
+
+	token := data.Get("token")
+
+	if token == conf.General.SlackToken {
+
+		var listOfTasks bytes.Buffer
+		var files []os.FileInfo
+		var err error
+
+		listOfTasks.WriteString("List:")
+
+		if files, err = ioutil.ReadDir("tasks"); err != nil {
+			log.Println(err)
+			listOfTasks.WriteString("`empty`")
+			w.Write(listOfTasks.Bytes())
+			return
+		}
+
+		for _, file := range files {
+			listOfTasks.WriteString("`" + file.Name() + "`")
+		}
+
+		w.Write(listOfTasks.Bytes())
+	}else{
+		io.WriteString(w, "Wrong slack-token accepted:"+token)
+	}
+}
+
+func SlackRun(w http.ResponseWriter, r *http.Request)  {
 	defer r.Body.Close()
 
 	var data url.Values
@@ -93,7 +133,7 @@ func SlackIntegration(w http.ResponseWriter, r *http.Request)  {
 		go executeHttpTask(w, taskName, responseUrl)
 		sendSlack(responseUrl, "", "Task was succefully queued!")
 	}else{
-		io.WriteString(w, "Wrong slack-token in meteor.conf")
+		io.WriteString(w, "Wrong slack-token accepted:"+token)
 	}
 }
 
