@@ -76,6 +76,7 @@ func main() {
 
 func SlackHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
 
 		var data url.Values
 		var err error
