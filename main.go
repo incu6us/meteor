@@ -291,7 +291,8 @@ func executeTask(taskName string) (string, error) {
 		TASK_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "pipeline",
 	); err != nil {
 		//msg <- fmt.Sprintf("Error to open script file: %v", err)
-		log.Printf("PWD: %v", os.Getwd())
+		path, _ := os.Getwd()
+		log.Printf("PWD: %v", path)
 		return "", err
 	}
 
