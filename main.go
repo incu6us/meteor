@@ -75,8 +75,6 @@ func main() {
 func SlackHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		defer r.Body.Close()
-
 		var data url.Values
 		var err error
 
@@ -100,6 +98,8 @@ func SlackHandler(h http.Handler) http.Handler {
 }
 func SlackListFunc(w http.ResponseWriter, r *http.Request) {
 
+	defer r.Body.Close()
+
 	var listOfTasks bytes.Buffer
 	var files []os.FileInfo
 	var err error
@@ -122,6 +122,8 @@ func SlackListFunc(w http.ResponseWriter, r *http.Request) {
 
 func SlackRunFunc(w http.ResponseWriter, r *http.Request) {
 
+	defer r.Body.Close()
+	
 	var data url.Values
 	var err error
 
