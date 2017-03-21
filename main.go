@@ -26,7 +26,7 @@ import (
 
 const (
 	Workspace = "workspace"
-	TaskDir   = "tasks"
+	TasksDir   = "tasks"
 	COMMAND_TASKLIST = "/tasklist"
 	COMMAND_TASKRUN = "/taskrun"
 )
@@ -35,7 +35,7 @@ var (
 	conf        = config.GetConfig()
 	APP_PATH, _ = os.Getwd()
 	WORKSPACE   = APP_PATH + string(filepath.Separator) + Workspace
-	TASK_DIR    = APP_PATH + string(filepath.Separator) + TaskDir
+	TASKS_DIR    = APP_PATH + string(filepath.Separator) + TasksDir
 )
 
 func httpSecret(user, realm string) string {
@@ -114,7 +114,7 @@ func SlackListFunc(w http.ResponseWriter, r *http.Request) {
 
 	listOfTasks.WriteString("Tasks list:\n")
 
-	if files, err = ioutil.ReadDir(TASK_DIR); err != nil {
+	if files, err = ioutil.ReadDir(TASKS_DIR); err != nil {
 		log.Println(err)
 		listOfTasks.WriteString("`empty`")
 		w.Write(listOfTasks.Bytes())
@@ -223,7 +223,7 @@ func (t *TaskConfig) taskConfig(taskName string) *TaskConfig {
 	var confFile []byte
 
 	if confFile, err = ioutil.ReadFile(
-		TASK_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "config",
+		TASKS_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "config",
 	); err != nil {
 		log.Printf("Error to open script file: %v", err)
 	}
@@ -241,7 +241,7 @@ func executeTask(taskName string) (string, error) {
 
 	var globalVars = make(map[string]string)
 	globalVars["$WORKSPACE"] = taskWorkspace
-	globalVars["$TASKSPACE"] = TASK_DIR + string(filepath.Separator) + taskName
+	globalVars["$TASKSPACE"] = TASKS_DIR + string(filepath.Separator) + taskName
 
 	if exists(taskWorkspace) == true {
 		log.Printf("Task is already running. Workspace: %s - is busy. Wait a while", taskWorkspace)
@@ -289,7 +289,7 @@ func executeTask(taskName string) (string, error) {
 	}
 
 	if scriptFile, err = os.Open(
-		TASK_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "pipeline",
+		TASKS_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "pipeline",
 	); err != nil {
 		//msg <- fmt.Sprintf("Error to open script file: %v", err)
 		return "", err
