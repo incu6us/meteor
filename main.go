@@ -95,7 +95,7 @@ func SlackList(w http.ResponseWriter, r *http.Request)  {
 
 		listOfTasks.WriteString("Tasks list:\n")
 
-		if files, err = ioutil.ReadDir("tasks"); err != nil {
+		if files, err = ioutil.ReadDir("."+string(filepath.Separator)+"tasks"); err != nil {
 			log.Println(err)
 			listOfTasks.WriteString("`empty`")
 			w.Write(listOfTasks.Bytes())
