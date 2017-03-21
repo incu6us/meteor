@@ -31,7 +31,7 @@ const (
 
 var (
 	conf        = config.GetConfig()
-	APP_PATH, _ = os.Getwd()
+	//APP_PATH, _ = os.Getwd()
 	WORKSPACE   = conf.General.WorkspaceDir
 	TASK_DIR    = conf.General.TasksDir
 )
@@ -45,7 +45,7 @@ func httpSecret(user, realm string) string {
 
 func main() {
 
-	log.Printf("ROOT PATH: %s", APP_PATH)
+	//log.Printf("ROOT PATH: %s", APP_PATH)
 	if conf.General.Username != "" {
 		log.Printf("ROOT HEADER PASSWORD: %s", passwd.GeneratePassword().GetPasswdForHeader(
 			conf.General.Username, conf.General.Password),
@@ -74,6 +74,7 @@ func main() {
 
 func SlackHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
 
 		var data url.Values
 		var err error
@@ -290,6 +291,7 @@ func executeTask(taskName string) (string, error) {
 		TASK_DIR + string(filepath.Separator) + taskName + string(filepath.Separator) + "pipeline",
 	); err != nil {
 		//msg <- fmt.Sprintf("Error to open script file: %v", err)
+		log.Printf("PWD: %v", os.Getwd())
 		return "", err
 	}
 
