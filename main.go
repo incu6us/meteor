@@ -244,7 +244,7 @@ func executeTask(taskName string) (string, error) {
 
 	if exists(taskWorkspace) == true {
 		log.Printf("Task is already running. Workspace: %s - is busy. Wait a while", taskWorkspace)
-		return "", errors.New("Task is already running. Workspace: " + taskWorkspace + " - is busy. Wait a while...")
+		return "", errors.New("Task is already running. Workspace: " + taskWorkspace + " - is busy. Wait a while or delete this directory...")
 	}
 
 	//var msg = make(chan string)
