@@ -156,7 +156,7 @@ func sendSlack(slackUrl, taskName, result string) (string, error) {
 		return slackMessage(slackUrl, result)
 	}
 
-	slackWebHookUrl = new(TaskConfig).taskConfig(taskName).Slack.Url
+	slackWebHookUrl = new(TaskConfig).taskConfig(taskName).Slack.WebHookUrl
 
 	if slackWebHookUrl != ""{
 		return slackMessage(slackWebHookUrl, result)
@@ -186,7 +186,7 @@ type TaskConfig struct {
 		Value string
 	}
 	Slack struct{
-		Url string
+		WebHookUrl string `toml:"webhook-url"`
 	}
 }
 

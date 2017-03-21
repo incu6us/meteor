@@ -3,4 +3,4 @@ name = "TEST"
 value = "test value"
 
 [slack]
-url = "https://hooks.slack.com/services/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"
+webhook = "https://hooks.slack.com/services/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"
