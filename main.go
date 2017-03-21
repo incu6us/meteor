@@ -123,7 +123,7 @@ func SlackListFunc(w http.ResponseWriter, r *http.Request) {
 func SlackRunFunc(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
-	
+
 	var data url.Values
 	var err error
 
@@ -134,6 +134,8 @@ func SlackRunFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	taskName := data.Get("text")
+	log.Printf("TASKNAME: %s", taskName)
+	
 	responseUrl := data.Get("response_url")
 	go executeHttpTask(w, taskName, responseUrl)
 	sendSlack(responseUrl, "", "Task was succefully queued!")
