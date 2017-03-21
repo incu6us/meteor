@@ -64,7 +64,7 @@ func main() {
 		router.HandleFunc(k, auth.JustCheck(authenticator, v))
 	}
 
-	router.HandleFunc("/api/integration/slack", SlackIntegration)
+	router.HandleFunc("/api/integration/slack/run", SlackIntegration)
 
 	log.Printf("Start listening on %s", conf.General.Listen)
 	if err := http.ListenAndServe(conf.General.Listen, router); err != nil {
