@@ -238,6 +238,7 @@ func executeTask(taskName string) (string, error) {
 			//msg <- fmt.Sprintf("--- Running: %s\n", str)
 			buf.WriteString(fmt.Sprintf("--- Running: %s\n", str))
 			if output, err = executeCmd(str);err != nil{
+				cleanTaskWorkspace(taskWorkspace)
 				return buf.String(), err
 			}
 			if	output != "" {
