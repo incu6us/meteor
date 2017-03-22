@@ -5,7 +5,7 @@ The lightweight and quick continuous delivery tool
 ![meteor](https://raw.githubusercontent.com/incu6us/meteor/master/examples/images/meteor.png)
 
 ### Purpose
-It is very simple application in configuration and it is very quick. That's why it could be used on ARM's devices also, like RaspberryPI, to execute your `BASH` pipelines or scripts. Possibility, to integrate it with an external systems (for example: `TravisCI` and `Slack`) make it flexible. 
+It is very simple application with configuration and it is very quick. That's why it could be used on ARM's devices also, like RaspberryPI, to execute your `BASH` pipelines or scripts. Possibility, to integrate it with an external systems (for example: `TravisCI` and `Slack`) make it flexible. 
 
 ## Installation
 ##### build:
