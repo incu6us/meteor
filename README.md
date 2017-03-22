@@ -44,7 +44,8 @@ General configuration file contains of:
 
 `slack-token` - Slack's verification token, for integration with Slack API
 
-## Task creation
+## Tasks
+#### Task creation
 To create a new task you just need to create a directory inside `./tasks/` and two files in the new created folder:
  
  ```
@@ -65,5 +66,41 @@ webhook-url = "https://hooks.slack.com/services/T4LUQ9ZFC/B4M2E3NLV/vZG2KX4Zjtlt
 Example:
 ```
 export VAR1="1"; echo $VAR1
-export VAR1="1"; exaport VAR2="2" echo $VAR1 $VAR2
+export VAR1="1"; exaport VAR2="2"; echo $VAR1 $VAR2
 ```
+
+*You don't need to reload the application after creation a task*
+
+# Integration
+There are a couple of http calls, which will help you to integrate it with an external systems.
+
+#### API Calls:
+- To execute a task:
+
+    `/api/task/run/{taskName}` - API, for execution of a task, where `{taskName}` is a folder in tasks dir.
+    You can use `username` and `password` from general configuration to turning on a basic authorization. 
+    CURL example to execute a task with basic auth header:
+
+    ```
+    curl -i -H 'Authorization: Basic dXNlcjo2NjY2NjY=' 'http://localhost:8080/api/task/run/test'
+    ```
+
+    If you will configure a `webhook-url` for Slack, then you will be able to get a status messages from the call.
+
+- To integrate with Slack:
+
+    - `/api/integration/slack/list` - to list available tasks;
+    - `/api/integration/slack/run`  - run task manually from Slack
+    
+  to integrate this calls you need to go to the `https://api.slack.com` and create a new application. Then, you need to get a verification token and put it into main configuration.
+  ![slack token](https://raw.githubusercontent.com/incu6us/meteor/master/examples/images/slack_token.png)
+
+  the second step, will be to create a "Slash commands": one for `list` and another for `run`
+  ![slash commands](https://raw.githubusercontent.com/incu6us/meteor/master/examples/images/slash_commands.png)
+  
+  Examples:
+  - taskrun
+  ![taskrun](https://raw.githubusercontent.com/incu6us/meteor/master/examples/images/taskrun.png)
+  
+  - tasklist:
+  ![taskrun](https://raw.githubusercontent.com/incu6us/meteor/master/examples/images/tasklist.png)

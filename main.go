@@ -25,17 +25,17 @@ import (
 )
 
 const (
-	Workspace = "workspace"
-	TasksDir   = "tasks"
+	Workspace        = "workspace"
+	TasksDir         = "tasks"
 	COMMAND_TASKLIST = "/tasklist"
-	COMMAND_TASKRUN = "/taskrun"
+	COMMAND_TASKRUN  = "/taskrun"
 )
 
 var (
 	conf        = config.GetConfig()
 	APP_PATH, _ = os.Getwd()
 	WORKSPACE   = APP_PATH + string(filepath.Separator) + Workspace
-	TASKS_DIR    = APP_PATH + string(filepath.Separator) + TasksDir
+	TASKS_DIR   = APP_PATH + string(filepath.Separator) + TasksDir
 )
 
 func httpSecret(user, realm string) string {
