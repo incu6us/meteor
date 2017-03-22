@@ -4,6 +4,7 @@ The lightweight and quick continuous delivery tool
 
 ![meteor](https://raw.githubusercontent.com/incu6us/meteor/master/examples/images/meteor.png)
 
+### Installation
 ##### build:
 ```
 go build .
@@ -12,5 +13,16 @@ go build .
 ##### start command:
 ```
 ./meteor -conf meteor.conf
+```
+
+##### start with **systemd**:
+
+```
+mkdir /opt/meteor
+cp -r {meteor,meteor.conf,tasks} /opt/meteor/
+cp examples/systemd/meteor.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable meteor
+systemctl start meteor
 ```
 
