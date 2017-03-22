@@ -33,6 +33,7 @@ systemctl start meteor
 Main configuration for the service are placed in `meteor.conf`. Also, there is an additional configuration for each `task`, which is placed in `./tasks/` directory.  
 
 General configuration file contains of:
+
 `listen` - host and port to listening(example: ":8080")
 
 `username` - username for basic authentication
