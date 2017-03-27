@@ -82,8 +82,6 @@ func RunFunc(w http.ResponseWriter, r *http.Request) {
 
 	//var msg = make(chan string)
 
-	defer r.Body.Close()
-
 	taskName := vars["taskName"]
 
 	executeHttpTask(w, taskName, "")
