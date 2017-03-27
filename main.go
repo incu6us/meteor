@@ -2,26 +2,13 @@ package main
 
 import (
 	"os"
-	"bufio"
-	"os/exec"
 	"log"
 	"net/http"
-	"fmt"
-	"bytes"
 	"github.com/incu6us/meteor/internal/utils/config"
 	"github.com/gorilla/mux"
 	"path/filepath"
-	"strings"
 	"github.com/abbot/go-http-auth"
 	"github.com/incu6us/meteor/internal/utils/passwd"
-	"io/ioutil"
-	"github.com/naoina/toml"
-	"github.com/incu6us/meteor/internal/utils/httputils"
-	"encoding/json"
-	"errors"
-	"time"
-	"net/url"
-	"io"
 )
 
 const (
