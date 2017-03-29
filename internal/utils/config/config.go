@@ -7,7 +7,6 @@ import (
 
 	"log"
 	"github.com/naoina/toml"
-	"github.com/Masterminds/glide/cfg"
 )
 
 // TomlConfig - config structure
