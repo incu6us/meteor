@@ -79,14 +79,15 @@ There are a couple of http calls, which will help you to integrate it with an ex
 #### API Calls:
 - To execute a task:
 
-    `/api/task/run/{taskName}` - API, for execution of a task, where `{taskName}` is a folder in tasks dir.
+    `/api/task/run/{taskName}?param1=var1` - API, for execution of a task, where `{taskName}` is a folder in tasks dir.
     You can use `username` and `password` from general configuration to turning on a basic authorization. 
     CURL example to execute a task with basic auth header:
 
     ```
-    curl -i -H 'Authorization: Basic dXNlcjo2NjY2NjY=' 'http://localhost:8080/api/task/run/test'
+    curl -i -H 'Authorization: Basic dXNlcjo2NjY2NjY=' 'http://localhost:8080/api/task/run/test?param1=var1'
     ```
-
+    `param1` - is a parameter for pipeline via HTTP interface and could be used in you script(like: `$param1`). It is working only via HTTP-interface
+    
     If you will configure a `webhook-url` for Slack, then you will be able to get a status messages from the call.
 
 - To integrate with Slack:

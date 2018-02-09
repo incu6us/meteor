@@ -44,12 +44,15 @@ func (t *TaskConfig) taskConfig(taskName string) *TaskConfig {
 	return t
 }
 
-func executeTask(taskName string) (string, error) {
+func executeTask(taskName string, params map[string]string) (string, error) {
 	taskWorkspace := WORKSPACE + string(filepath.Separator) + taskName
 
 	var globalVars = make(map[string]string)
 	globalVars["$WORKSPACE"] = taskWorkspace
 	globalVars["$TASKSPACE"] = TASKS_DIR + string(filepath.Separator) + taskName
+	for k, v := range params{
+		globalVars[fmt.Sprintf("$%s", strings.Replace(k, " ", "", -1))] = v
+	}
 
 	if exists(taskWorkspace) == true {
 		log.Printf("Task is already running. Workspace: %s - is busy. Wait a while", taskWorkspace)
@@ -141,7 +144,7 @@ func cleanTaskWorkspace(taskWorkspace string) {
 	}
 }
 
-func executeHttpTask(w http.ResponseWriter, taskName, responseUrl string) {
+func executeHttpTask(w http.ResponseWriter, taskName string, params map[string]string, responseUrl string) {
 	var startExecutionCommandTime time.Time
 	var endExecutionCommandTime time.Duration
 
@@ -153,7 +156,7 @@ func executeHttpTask(w http.ResponseWriter, taskName, responseUrl string) {
 		log.Printf("Slack message: %s", mess)
 	}
 	startExecutionCommandTime = time.Now()
-	result, err := executeTask(taskName)
+	result, err := executeTask(taskName, params)
 	if err != nil {
 		endExecutionCommandTime = time.Now().Sub(startExecutionCommandTime)
 		sendSlack(responseUrl, taskName, ":skull: Job `"+taskName+"` - *failed*!\n"+"Result:\n```"+result+"\n"+err.Error()+"```\nExecution time: *"+endExecutionCommandTime.String()+"*")

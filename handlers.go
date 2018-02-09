@@ -1,14 +1,16 @@
 package main
 
 import (
-	"net/http"
 	"bytes"
-	"os"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
-	"github.com/gorilla/mux"
+	"net/http"
 	"net/url"
-	"io"
+	"os"
+
+	"github.com/gorilla/mux"
 	"github.com/incu6us/meteor/internal/utils/passwd"
 )
 
@@ -39,15 +41,15 @@ func SlackHandler(h http.Handler) http.Handler {
 		responseUrl := data.Get("response_url")
 
 		if token == conf.General.SlackToken {
-			if command == COMMAND_TASKLIST {
+			switch command {
+			case COMMAND_TASKLIST:
 				h.ServeHTTP(w, r)
-			}
-			if command == COMMAND_TASKRUN {
-				go executeHttpTask(w, taskName, responseUrl)
+			case COMMAND_TASKRUN:
+				go executeHttpTask(w, taskName, nil, responseUrl)
 				sendSlack(responseUrl, "", "Task was succefully queued!")
 			}
 		} else {
-			io.WriteString(w, "Wrong slack-token accepted:"+token)
+			io.WriteString(w, fmt.Sprintf("Wrong slack-token accepted: %s",token))
 		}
 	})
 }
@@ -83,6 +85,7 @@ func RunFunc(w http.ResponseWriter, r *http.Request) {
 	//var msg = make(chan string)
 
 	taskName := vars["taskName"]
+    delete(vars, "taskName")
 
-	executeHttpTask(w, taskName, "")
+	executeHttpTask(w, taskName, vars,"")
 }

@@ -1,13 +1,15 @@
 package main
 
 import (
-	"os"
 	"log"
 	"net/http"
-	"github.com/incu6us/meteor/internal/utils/config"
-	"github.com/gorilla/mux"
+	"os"
 	"path/filepath"
+
 	"github.com/abbot/go-http-auth"
+	"github.com/gorilla/mux"
+
+	"github.com/incu6us/meteor/internal/utils/config"
 	"github.com/incu6us/meteor/internal/utils/passwd"
 )
 
