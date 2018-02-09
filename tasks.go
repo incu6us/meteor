@@ -3,17 +3,18 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"log"
-	"strings"
-	"fmt"
-	"os"
-	"io/ioutil"
-	"path/filepath"
-	"github.com/naoina/toml"
-	"os/exec"
-	"net/http"
-	"time"
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/naoina/toml"
 )
 
 type TaskConfig struct {
@@ -50,9 +51,11 @@ func executeTask(taskName string, params map[string]string) (string, error) {
 	var globalVars = make(map[string]string)
 	globalVars["$WORKSPACE"] = taskWorkspace
 	globalVars["$TASKSPACE"] = TASKS_DIR + string(filepath.Separator) + taskName
-	for k, v := range params{
-		globalVars[fmt.Sprintf("$%s", strings.Replace(k, " ", "", -1))] = v
+	for k, v := range params {
+		globalVars[fmt.Sprintf("%s", strings.Replace(k, " ", "", -1))] = v
 	}
+
+	log.Printf("Global VARS: %#v", globalVars)
 
 	if exists(taskWorkspace) == true {
 		log.Printf("Task is already running. Workspace: %s - is busy. Wait a while", taskWorkspace)
@@ -83,8 +86,15 @@ func executeTask(taskName string, params map[string]string) (string, error) {
 			cmdStr = strings.Replace(cmdStr, "$TASKSPACE", globalVars["$TASKSPACE"], -1) + string(filepath.Separator)
 		}
 
-		cmd := exec.Command(conf.General.CmdInterpreter, conf.General.CmdFlag, cmdStr)
+		env := make([]string, 0, 5)
+		if len(params) > 0 {
+			for k, v := range params {
+				env = append(env, fmt.Sprintf("%s=%s", k, v))
+			}
+		}
 
+		cmd := exec.Command(conf.General.CmdInterpreter, conf.General.CmdFlag, cmdStr)
+		cmd.Env = env
 		if cmdOut, err = cmd.CombinedOutput(); err != nil {
 			log.Printf("!!! Error to execute line: %v\n%s", err, cmdOut)
 			//msg <- fmt.Sprintf("!!! Error to execute line: %v", err)
@@ -155,6 +165,7 @@ func executeHttpTask(w http.ResponseWriter, taskName string, params map[string]s
 	if mess != "" {
 		log.Printf("Slack message: %s", mess)
 	}
+	log.Printf("PARAM: %#v", params)
 	startExecutionCommandTime = time.Now()
 	result, err := executeTask(taskName, params)
 	if err != nil {

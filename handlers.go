@@ -49,7 +49,7 @@ func SlackHandler(h http.Handler) http.Handler {
 				sendSlack(responseUrl, "", "Task was succefully queued!")
 			}
 		} else {
-			io.WriteString(w, fmt.Sprintf("Wrong slack-token accepted: %s",token))
+			io.WriteString(w, fmt.Sprintf("Wrong slack-token accepted: %s", token))
 		}
 	})
 }
@@ -85,7 +85,13 @@ func RunFunc(w http.ResponseWriter, r *http.Request) {
 	//var msg = make(chan string)
 
 	taskName := vars["taskName"]
-    delete(vars, "taskName")
+	log.Printf("> PARAMS: %#v", r.URL.Query())
+	params := make(map[string]string, 5)
+	for k, values := range r.URL.Query() {
+		if len(values) > 0 {
+			params[k] = values[0]
+		}
+	}
 
-	executeHttpTask(w, taskName, vars,"")
+	executeHttpTask(w, taskName, params, "")
 }
