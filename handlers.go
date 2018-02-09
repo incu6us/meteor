@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/incu6us/meteor/internal/utils/passwd"
@@ -36,16 +37,27 @@ func SlackHandler(h http.Handler) http.Handler {
 		}
 
 		token := data.Get("token")
-		taskName := data.Get("text")
+		dirtyTask := data.Get("text")
 		command := data.Get("command")
 		responseUrl := data.Get("response_url")
+
+		taskName := strings.Split(dirtyTask, " ")[0]
+		params := make(map[string]string, 5)
+		if len(strings.Split(dirtyTask, " ")) > 1 {
+			for _, paramPairs := range strings.Split(strings.Split(dirtyTask, " ")[1], ";") {
+				kv := strings.Split(paramPairs, "=")
+				params[strings.TrimSpace(kv[0])] = kv[1]
+			}
+		}
+
+		log.Printf("Slack params: %#v", params)
 
 		if token == conf.General.SlackToken {
 			switch command {
 			case COMMAND_TASKLIST:
 				h.ServeHTTP(w, r)
 			case COMMAND_TASKRUN:
-				go executeHttpTask(w, taskName, nil, responseUrl)
+				go executeHttpTask(w, taskName, params, responseUrl)
 				sendSlack(responseUrl, "", "Task was succefully queued!")
 			}
 		} else {

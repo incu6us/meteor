@@ -86,7 +86,7 @@ There are a couple of http calls, which will help you to integrate it with an ex
     ```
     curl -i -H 'Authorization: Basic dXNlcjo2NjY2NjY=' 'http://localhost:8080/api/task/run/test?param1=var1'
     ```
-    `param1` - is a parameter for pipeline via HTTP interface and could be used in you script(like: `$param1`). It is working only via HTTP-interface
+    `param1` - is a parameter for pipeline via HTTP interface and could be used in you script(like: `$param1`).
     
     If you will configure a `webhook-url` for Slack, then you will be able to get a status messages from the call.
 
@@ -95,6 +95,11 @@ There are a couple of http calls, which will help you to integrate it with an ex
     - `/api/integration/slack/list` - to list available tasks;
     - `/api/integration/slack/run`  - run task manually from Slack
     
+  ```
+  /taskrun test param1=value1;param2=value2
+  ```
+  example to execute slack pipeline with params
+  
   to integrate this calls you need to go to the `https://api.slack.com` and create a new application. Then, you need to get a verification token and put it into main configuration.
   ![slack token](https://raw.githubusercontent.com/incu6us/meteor/master/examples/images/slack_token.png)
 
